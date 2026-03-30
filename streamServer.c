@@ -7,14 +7,14 @@ and sends a welcome message. This is meant to test sending
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <errno.h>
-#include <netdb.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <netdb.h>
 
 #define PORT "2330"
 #define BACKLOG 10
@@ -49,6 +49,7 @@ int main(void){
     socklen_t sin_size;
     struct sigaction sa;
     char s[INET6_ADDRSTRLEN]; //char buffer to hold the string form of the client's IP address on ln117
+    int yes=1;
 
     //memset to zero out the hints struct before filling it in
     memset(&hints, 0, sizeof hints);
@@ -71,7 +72,7 @@ int main(void){
         }
 
         //set socket options to interact at socket level, reuseaddr allows us reuse of port immediately after server terminates
-        if ((setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int))) == -1) {
+        if ((setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes)) == -1) {
             perror("setsockopt");
             exit(1);
         }
@@ -86,18 +87,25 @@ int main(void){
         break;
     }
 
-    freeaddrinfo(servinfo); // done with this structure
-
     if (p == NULL) { //i.e. we went through the whole list and couldn't bind to any
         fprintf(stderr, "server: failed to bind\n");
         exit(1);
     }
+
+    char myaddr[INET6_ADDRSTRLEN];
+    inet_ntop(p->ai_family, 
+        get_in_addr((struct sockaddr *)(p->ai_addr)),
+        myaddr, sizeof myaddr);
+
+    freeaddrinfo(servinfo); // done with this structure
 
     //listen on the socket
     if (listen(sockfd, BACKLOG) == -1) {
         perror("listen");
         exit(1);
     }
+
+    printf("server: listening on %s...\n", myaddr);
 
     //set up the signal handler to reap dead child processes
     sa.sa_handler = sigchld_handler; // reap all dead processes
