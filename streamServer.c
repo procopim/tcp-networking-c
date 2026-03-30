@@ -18,7 +18,7 @@ and sends a welcome message. This is meant to test sending
 
 #define PORT "2330"
 #define BACKLOG 10
-#define WELCOME_MSG "Hello - connection established!\n"
+#define MSG_SIZE 1000000
 
 
 //Signal handler for SIGCHLD; avoids zombie processes created by fork()
@@ -41,6 +41,12 @@ void *get_in_addr(struct sockaddr *sa) {
 }
 
 int main(void){
+
+    //generate welcome message of 1MB of 'A's at runtime
+    char *welcome_msg = malloc(MSG_SIZE + 1);
+    if (!welcome_msg) { perror("malloc"); exit(1); }
+    memset(welcome_msg, 'A', MSG_SIZE);
+    welcome_msg[MSG_SIZE] = '\0';
 
     int sockfd, new_fd; // listen on sockfd, new connection on new_fd
     struct addrinfo hints, *servinfo;
@@ -134,7 +140,7 @@ int main(void){
             close(sockfd); //child doesn't need the listener
 
             //send welcome message to client
-            if (send(new_fd, WELCOME_MSG, strlen(WELCOME_MSG), 0) == -1) {
+            if (send(new_fd, welcome_msg, MSG_SIZE, 0) == -1) {
                 perror("send");
             }
 
