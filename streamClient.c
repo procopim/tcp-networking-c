@@ -100,6 +100,19 @@ int main(int argc, char *argv[]) {
     
     // printf("message was %d bytes long\n", numbytes);
     // close(sockfd);
+
+    //drain the read buffer before shutting down the write side of the socket
+    for(;;) {
+        int res;
+        res=read(sock, buffer, 4000);
+        if(res < 0) {
+            perror("reading");
+            exit(1);
+        }
+        printf("client: read %d bytes from server\n", res);
+        if(!res)
+            break;
+    }
     shutdown(sockfd, SHUT_WR);
 
     return 0;
