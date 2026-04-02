@@ -136,34 +136,54 @@ int main(void){
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-        if (!fork()) { //fork returns 0 in the child, and positive int in the parent;
-            close(sockfd); //child doesn't need the listener
-
             // //send welcome message to client
-            write(new_fd, "220 Welcome\r\n", 13);
-            
-            char buf[4096];
-            int numbytes = 0;
-            while(1) {
-                int res;
-                if ((res = read(new_fd, buf, sizeof(buf)-1)) == -1) {
-                    perror("recv");
-                    exit(1);    
-                }
-                numbytes += res;
-                if (!res) {
-                    printf("client: server closed connection\n");
-                    break;
-                }
+        write(new_fd, "220 Welcome\r\n", 13);
+        char buf[4096];
+        int numbytes = 0;
+        while(1) {
+            int res;
+            if ((res = read(new_fd, buf, sizeof(buf)-1)) == -1) {
+                perror("recv");
+                exit(1);    
             }
-    
-            printf("message was %d bytes long\n", numbytes);
-
-            close(new_fd);
-            exit(0);
-
+            numbytes += res;
+            if (!res) {
+                printf("client: server closed connection\n");
+                break;
+            }
         }
-        close(new_fd); // parent doesn't need this
+    
+        printf("message was %d bytes long\n", numbytes);
+        close(new_fd);
+
+        // if (!fork()) { //fork returns 0 in the child, and positive int in the parent;
+        //     close(sockfd); //child doesn't need the listener
+
+        //     // //send welcome message to client
+        //     write(new_fd, "220 Welcome\r\n", 13);
+
+        //     char buf[4096];
+        //     int numbytes = 0;
+        //     while(1) {
+        //         int res;
+        //         if ((res = read(new_fd, buf, sizeof(buf)-1)) == -1) {
+        //             perror("recv");
+        //             exit(1);    
+        //         }
+        //         numbytes += res;
+        //         if (!res) {
+        //             printf("client: server closed connection\n");
+        //             break;
+        //         }
+        //     }
+    
+        //     printf("message was %d bytes long\n", numbytes);
+
+        //     close(new_fd);
+        //     exit(0);
+
+        // }
+        // close(new_fd); // parent doesn't need this
     }
     return 0;
 
