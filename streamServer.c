@@ -139,11 +139,9 @@ int main(void){
         if (!fork()) { //fork returns 0 in the child, and positive int in the parent;
             close(sockfd); //child doesn't need the listener
 
-            // char *welcome_msg = "Hello, client! Welcome msg from server";
             // //send welcome message to client
-            // if (write(new_fd, welcome_msg, sizeof(welcome_msg)) == -1) {
-            //     perror("send");
-            // }
+            write(new_fd, "220 Welcome\r\n", 13);
+            
             char buf[4096];
             int numbytes = 0;
             while(1) {
