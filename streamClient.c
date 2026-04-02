@@ -79,31 +79,14 @@ int main(int argc, char *argv[]) {
     //lets make client send data instead of just receiving
     char buffer[1000000];
     memset(buffer, 'a', sizeof(buffer)); // set outbound buffer to 1M a's
-    // if (write(sockfd, buffer, sizeof(buffer)) == -1) {
-    //     perror("send");
-    //     exit(1);
-    // }
     write(sockfd, buffer, sizeof(buffer));
     printf("client: sent %ld bytes to server\n", sizeof(buffer));
-    // while(1) {
-    //     int res;
-    //     if ((res = read(sockfd, buf, MAXDATASIZE-1)) == -1) {
-    //         perror("recv");
-    //         exit(1);    
-    //     }
-    //     numbytes += res;
-    //     if (!res) {
-    //         printf("client: server closed connection\n");
-    //         break;
-    //     }
-    // }
-    
-    // printf("message was %d bytes long\n", numbytes);
-    // close(sockfd);
+
+    shutdown(sockfd, SHUT_WR); //close the write side of the socket to signal we're done sending data
 
     //drain the read buffer before shutting down the write side of the socket
+    int res;
     for(;;) {
-        int res;
         res=read(sockfd, buffer, 4000);
         if(res < 0) {
             perror("reading");
@@ -113,7 +96,5 @@ int main(int argc, char *argv[]) {
         if(!res)
             break;
     }
-    shutdown(sockfd, SHUT_WR);
-
     return 0;
 }

@@ -20,16 +20,6 @@ and sends a welcome message. This is meant to test sending
 #define BACKLOG 10
 #define MSG_SIZE 1000000
 
-//Signal handler for SIGCHLD; avoids zombie processes created by fork()
-void sigchld_handler(int s) {
-    // waitpid() might overwrite errno, so we save and restore it:
-    int saved_errno = errno;
-
-    while(waitpid(-1, NULL, WNOHANG) > 0);
-
-    errno = saved_errno;
-}
-
 //get sockaddr
 void *get_in_addr(struct sockaddr *sa) {
     if (sa->sa_family == AF_INET) {
@@ -39,14 +29,7 @@ void *get_in_addr(struct sockaddr *sa) {
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int main(void){
-
-    //generate welcome message of 1MB of 'A's at runtime
-    // char *welcome_msg = malloc(MSG_SIZE + 1);
-    // if (!welcome_msg) { perror("malloc"); exit(1); }
-    // memset(welcome_msg, 'A', MSG_SIZE);
-    // welcome_msg[MSG_SIZE] = '\0';
-    
+int main(void){  
 
     int sockfd, new_fd; // listen on sockfd, new connection on new_fd
     struct addrinfo hints, *servinfo;
@@ -112,85 +95,37 @@ int main(void){
     }
 
     printf("server: listening on %s...\n", myaddr);
-
-    //set up the signal handler to reap dead child processes
-    sa.sa_handler = sigchld_handler; // reap all dead processes
-    sigemptyset(&sa.sa_mask);
-    //sigaction field sa_mask; a set of signals to block during exec of sig handler; 
-    //we want to block no signals, so we initialize it to the empty set with sigemptyset()
-    sa.sa_flags = SA_RESTART; //meaningful for certain system calls to be restarted if interrupted by handler
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        perror("sigaction");
-        exit(1);
-    }
-
     printf("server: waiting for connections...\n");
 
-    while(1){
-        sin_size = sizeof their_addr;
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-        if (new_fd == -1) {
-            perror("accept");
-            continue;
-        }
-        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-        printf("server: got connection from %s\n", s);
-
-            // //send welcome message to client
-        write(new_fd, "220 Welcome\r\n", 13);
-        char buf[4096];
-        int numbytes = 0;
-        while(1) {
-            int res;
-            if ((res = read(new_fd, buf, sizeof(buf)-1)) == -1) {
-                perror("recv");
-                exit(1);    
-            }
-            numbytes += res;
-            if (!res) {
-                printf("client: server closed connection\n");
-                break;
-            }
-        }
-    
-        printf("message was %d bytes long\n", numbytes);
-        close(new_fd);
-
-        // if (!fork()) { //fork returns 0 in the child, and positive int in the parent;
-        //     close(sockfd); //child doesn't need the listener
-
-        //     // //send welcome message to client
-        //     write(new_fd, "220 Welcome\r\n", 13);
-
-        //     char buf[4096];
-        //     int numbytes = 0;
-        //     while(1) {
-        //         int res;
-        //         if ((res = read(new_fd, buf, sizeof(buf)-1)) == -1) {
-        //             perror("recv");
-        //             exit(1);    
-        //         }
-        //         numbytes += res;
-        //         if (!res) {
-        //             printf("client: server closed connection\n");
-        //             break;
-        //         }
-        //     }
-    
-        //     printf("message was %d bytes long\n", numbytes);
-
-        //     close(new_fd);
-        //     exit(0);
-
-        // }
-        // close(new_fd); // parent doesn't need this
+    sin_size = sizeof their_addr;
+    new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+    if (new_fd == -1) {
+        perror("accept");
+        continue;
     }
+    inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
+    printf("server: got connection from %s\n", s);
+
+    //send welcome message to client
+    write(new_fd, "220 Welcome\r\n", 13);
+    char buf[4096];
+    int numbytes = 0;
+    while(1) {
+        int res;
+        if ((res = read(new_fd, buf, sizeof(buf)-1)) == -1) {
+            perror("recv");
+            exit(1);    
+        }
+        numbytes += res;
+        if (!res) {
+            printf("server: client closed connection\n");
+            break;
+        }
+    }
+
+    printf("message was %d bytes long\n", numbytes);
+    close(new_fd);
     return 0;
-
-
-
-
-
 }
 
 
