@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     //drain the read buffer before shutting down the write side of the socket
     for(;;) {
         int res;
-        res=read(sock, buffer, 4000);
+        res=read(sockfd, buffer, 4000);
         if(res < 0) {
             perror("reading");
             exit(1);
