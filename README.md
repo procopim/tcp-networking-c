@@ -13,4 +13,12 @@ This is the server side implementation.
 
 Inline comments are meant to reinforce things I studied/learned on the fly. We have error checking throughout and are spawning child processes to handle incoming socket connections.
 
-`addrinfo` struct does alot of heavy lifting for us so that we dont have to manually stuff info into our socket declarations. 
+`addrinfo` struct does alot of heavy lifting for us so that we dont have to manually stuff info into our socket declarations. I switched to using `write()` from `send()` just to save passing the flags parameter.
+
+---
+#streamClient.c
+
+This is the client implementation. We are using `read()` instead of `recv()`. It is reading the entire contents from server and printing out how many bytes. 
+I want to test this on a remote machine, not my localhost, and observe whether we lose some bytes in this basic implementation.
+
+---
