@@ -99,7 +99,8 @@ int main(int argc, char *argv[]) {
     // }
     
     // printf("message was %d bytes long\n", numbytes);
-    close(sockfd);
+    // close(sockfd);
+    shutdown(sockfd, SHUT_WR);
 
     return 0;
 }
