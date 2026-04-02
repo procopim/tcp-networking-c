@@ -20,7 +20,6 @@ and sends a welcome message. This is meant to test sending
 #define BACKLOG 10
 #define MSG_SIZE 1000000
 
-
 //Signal handler for SIGCHLD; avoids zombie processes created by fork()
 void sigchld_handler(int s) {
     // waitpid() might overwrite errno, so we save and restore it:
@@ -43,10 +42,11 @@ void *get_in_addr(struct sockaddr *sa) {
 int main(void){
 
     //generate welcome message of 1MB of 'A's at runtime
-    char *welcome_msg = malloc(MSG_SIZE + 1);
-    if (!welcome_msg) { perror("malloc"); exit(1); }
-    memset(welcome_msg, 'A', MSG_SIZE);
-    welcome_msg[MSG_SIZE] = '\0';
+    // char *welcome_msg = malloc(MSG_SIZE + 1);
+    // if (!welcome_msg) { perror("malloc"); exit(1); }
+    // memset(welcome_msg, 'A', MSG_SIZE);
+    // welcome_msg[MSG_SIZE] = '\0';
+    
 
     int sockfd, new_fd; // listen on sockfd, new connection on new_fd
     struct addrinfo hints, *servinfo;
@@ -139,10 +139,27 @@ int main(void){
         if (!fork()) { //fork returns 0 in the child, and positive int in the parent;
             close(sockfd); //child doesn't need the listener
 
+            char *welcome_msg = "Hello, client! Welcome msg from server";
             //send welcome message to client
-            if (send(new_fd, welcome_msg, MSG_SIZE, 0) == -1) {
+            if (write(new_fd, welcome_msg, sizeof(welcome_msg)) == -1) {
                 perror("send");
             }
+            char buf[4096];
+            int numbytes = 0;
+            while(1) {
+                int res;
+                if ((res = read(new_fd, buf, sizeof(buf)-1)) == -1) {
+                    perror("recv");
+                    exit(1);    
+                }
+                numbytes += res;
+                if (!res) {
+                    printf("client: server closed connection\n");
+                    break;
+                }
+            }
+    
+            printf("message was %d bytes long\n", numbytes);
 
             close(new_fd);
             exit(0);
