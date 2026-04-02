@@ -75,14 +75,30 @@ int main(int argc, char *argv[]) {
     printf("client: connected to %s\n", s);
     freeaddrinfo(servinfo); // all done with this structure
 
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-        perror("recv");
-        exit(1);    
-    }
-
-    buf[numbytes] = '\0';
-    printf("client: received '%s'\n", buf);
-    printf("message was %ld bytes long\n", strlen(buf));
+    numbytes = 0;
+    //lets make client send data instead of just receiving
+    char buffer[1000000];
+    memset(buffer, 'a', sizeof(buffer)); // set outbound buffer to 1M a's
+    // if (write(sockfd, buffer, sizeof(buffer)) == -1) {
+    //     perror("send");
+    //     exit(1);
+    // }
+    write(sockfd, buffer, sizeof(buffer));
+    printf("client: sent %ld bytes to server\n", sizeof(buffer));
+    // while(1) {
+    //     int res;
+    //     if ((res = read(sockfd, buf, MAXDATASIZE-1)) == -1) {
+    //         perror("recv");
+    //         exit(1);    
+    //     }
+    //     numbytes += res;
+    //     if (!res) {
+    //         printf("client: server closed connection\n");
+    //         break;
+    //     }
+    // }
+    
+    // printf("message was %d bytes long\n", numbytes);
     close(sockfd);
 
     return 0;
