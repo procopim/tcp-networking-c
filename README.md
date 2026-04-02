@@ -6,6 +6,8 @@ The ultimate goal is to create a server and client and observe 1MB of data being
 
 I am doing this in C to rekindle my intutition with memory management and thinking about variables, values and references to them. This in turn is helping me better understand the more abstracted python implementations of these tools, since much of Python is compiled to C.
 
+The below files can be compiled using gcc on linux, e.g. `gcc -o streamserver ./streamServer.c`
+
 ---
 #streamServer.c
 
